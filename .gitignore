@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+*.pyc
+*.pyo
+*.pyd
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+/static
+/staticfiles
+
+# Media files (не коммитим фотографии и скриншоты)
+backend/media/
+backend/static/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+
+# Docker
+

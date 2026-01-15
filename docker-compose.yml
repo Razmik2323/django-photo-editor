@@ -1,0 +1,103 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "3000:80"
+    volumes:
+      - ./backend/media:/app/backend/media
+      - ./backend/static:/app/backend/static
+    depends_on:
+      - web
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: web
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app/backend
+      - ./backend/static:/app/backend/static
+      - ./backend/media:/app/backend/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+    mem_limit: 12g
+    mem_reservation: 512m
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app/backend
+      - ./backend/media:/app/backend/media
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+    mem_limit: 6g
+    mem_reservation: 2g
+
+  beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery_beat
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app/backend
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+    mem_limit: 512m
+    mem_reservation: 256m
+
+  telegram_bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: telegram_bot
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app/backend
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+    mem_limit: 512m
+    mem_reservation: 256m
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 2gb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    mem_limit: 2.5g
+
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
